@@ -26,6 +26,14 @@
                 <Template Context="item">
                     @item.ComputerLab.ComputerLabName
                 </Template>
+                <FilterTemplate>
+                    <RadzenDropDown Data="_labs"
+                                    TextProperty="ComputerLabName"
+                                    ValueProperty="ComputerLabId"
+                                    AllowClear="true"
+                                    Style="width: 100%"
+                                    Change="OnLabFilterChanged" />
+                </FilterTemplate>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="ComputerLabHour" Property="DayOfWeek" Title="Day" Width="100px" />
             <RadzenDataGridColumn TItem="ComputerLabHour" Property="EffDate" Title="Effective" Width="150px" />
@@ -45,11 +53,35 @@
     private MyCsustanContext? _db;
     private IQueryable<ComputerLabHour>? _query;
     private RadzenDataGrid<ComputerLabHour>? _grid;
+    private List<ComputerLab> _labs = new();
+    private int? _selectedLabId;
 
     protected override async Task OnInitializedAsync()
     {
         _db = await DbFactory.CreateDbContextAsync();
-        _query = _db.ComputerLabHours.Include(h => h.ComputerLab).AsNoTracking();
+        _labs = await _db.ComputerLabs.AsNoTracking().OrderBy(l => l.ComputerLabName).ToListAsync();
+        BuildQuery();
+    }
+
+    private void BuildQuery()
+    {
+        var query = _db!.ComputerLabHours.Include(h => h.ComputerLab).AsNoTracking();
+        if (_selectedLabId.HasValue)
+        {
+            query = query.Where(h => h.ComputerLabId == _selectedLabId.Value);
+        }
+
+        _query = query;
+    }
+
+    private async Task OnLabFilterChanged(object? value)
+    {
+        _selectedLabId = value as int?;
+        BuildQuery();
+        if (_grid is not null)
+        {
+            await _grid.Reload();
+        }
     }
 
     private Task CreateAsync() => OpenDialogAsync(null);
