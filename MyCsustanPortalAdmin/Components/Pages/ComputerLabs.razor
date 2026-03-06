@@ -1,0 +1,67 @@
+@page "/computer-labs"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>Computer Labs</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>Computer Labs</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="ComputerLab"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="ComputerLab" Property="ComputerLabId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="ComputerLab" Property="ComputerLabName" Title="Lab Name" />
+            <RadzenDataGridColumn TItem="ComputerLab" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.ComputerLabId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<ComputerLab>? _query;
+    private RadzenDataGrid<ComputerLab>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.ComputerLabs.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<ComputerLabDialog>(
+            id is null ? "Add Computer Lab" : "Edit Computer Lab",
+            new Dictionary<string, object?> { [nameof(ComputerLabDialog.ComputerLabId)] = id },
+            new DialogOptions { Width = "600px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

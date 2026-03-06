@@ -1,0 +1,69 @@
+@page "/portal-links"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>Portal Links</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>Portal Links</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="PortalLink"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="PortalLink" Property="PortalLinkId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="PortalLink" Property="Title" Title="Title" />
+            <RadzenDataGridColumn TItem="PortalLink" Property="LinkUrl" Title="URL" />
+            <RadzenDataGridColumn TItem="PortalLink" Property="TargetFrame" Title="Target" Width="100px" />
+            <RadzenDataGridColumn TItem="PortalLink" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.PortalLinkId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<PortalLink>? _query;
+    private RadzenDataGrid<PortalLink>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.PortalLinks.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<PortalLinkDialog>(
+            id is null ? "Add Portal Link" : "Edit Portal Link",
+            new Dictionary<string, object?> { [nameof(PortalLinkDialog.PortalLinkId)] = id },
+            new DialogOptions { Width = "800px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

@@ -1,0 +1,115 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="PortalLinkGroup" Submit="OnSubmit">
+    <RadzenFieldset Text="Portal Link Group">
+        <RadzenStack Gap="1rem">
+            <RadzenTextBox @bind-Value="_model.PortalLinkGroupName" Name="PortalLinkGroupName" Placeholder="Group Name" Style="width: 100%" />
+            <RadzenNumeric TValue="int?" @bind-Value="_model.SortOrder" Name="SortOrder" Placeholder="Sort Order" Style="width: 100%" />
+            <RadzenCheckBox @bind-Value="_model.AllUsers" Name="AllUsers" />
+            <label>All Users</label>
+            <RadzenCheckBox @bind-Value="_model.IsInactive" Name="IsInactive" />
+            <label>Inactive</label>
+
+            <RadzenFieldset Text="Roles">
+                <RadzenListBox Data="_roles"
+                               TextProperty="RoleName"
+                               ValueProperty="PortalRoleId"
+                               Multiple="true"
+                               @bind-Value="_selectedRoleIds"
+                               Style="width: 100%; max-height: 240px" />
+            </RadzenFieldset>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Disabled="@(_model.PortalLinkGroupId == 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? PortalLinkGroupId { get; set; }
+
+    private PortalLinkGroup _model = new();
+    private List<PortalRole> _roles = new();
+    private IList<int> _selectedRoleIds = new List<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _roles = await db.PortalRoles.AsNoTracking().OrderBy(r => r.RoleName).ToListAsync();
+
+        if (PortalLinkGroupId is null)
+        {
+            return;
+        }
+
+        var entity = await db.PortalLinkGroups
+            .Include(g => g.PortalRoles)
+            .FirstOrDefaultAsync(g => g.PortalLinkGroupId == PortalLinkGroupId.Value);
+
+        if (entity is not null)
+        {
+            _model = entity;
+            _selectedRoleIds = entity.PortalRoles.Select(r => r.PortalRoleId).ToList();
+        }
+    }
+
+    private async Task OnSubmit(PortalLinkGroup model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        PortalLinkGroup entity;
+        if (model.PortalLinkGroupId == 0)
+        {
+            entity = new PortalLinkGroup();
+            db.PortalLinkGroups.Add(entity);
+        }
+        else
+        {
+            entity = await db.PortalLinkGroups
+                .Include(g => g.PortalRoles)
+                .FirstAsync(g => g.PortalLinkGroupId == model.PortalLinkGroupId);
+        }
+
+        entity.PortalLinkGroupName = model.PortalLinkGroupName;
+        entity.AllUsers = model.AllUsers;
+        entity.IsInactive = model.IsInactive;
+        entity.SortOrder = model.SortOrder;
+
+        entity.PortalRoles.Clear();
+        var selectedRoles = await db.PortalRoles
+            .Where(r => _selectedRoleIds.Contains(r.PortalRoleId))
+            .ToListAsync();
+        foreach (var role in selectedRoles)
+        {
+            entity.PortalRoles.Add(role);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this link group?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.PortalLinkGroups.FindAsync(_model.PortalLinkGroupId);
+        if (entity is not null)
+        {
+            db.PortalLinkGroups.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

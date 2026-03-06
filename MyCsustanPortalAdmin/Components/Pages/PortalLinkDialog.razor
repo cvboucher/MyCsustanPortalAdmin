@@ -1,0 +1,80 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="PortalLink" Submit="OnSubmit">
+    <RadzenFieldset Text="Portal Link">
+        <RadzenStack Gap="1rem">
+            <RadzenTextBox @bind-Value="_model.Title" Name="Title" Placeholder="Title" Style="width: 100%" />
+            <RadzenTextBox @bind-Value="_model.LinkUrl" Name="LinkUrl" Placeholder="URL" Style="width: 100%" />
+            <RadzenTextBox @bind-Value="_model.ImageUrl" Name="ImageUrl" Placeholder="Image URL" Style="width: 100%" />
+            <RadzenTextBox @bind-Value="_model.ScreenTip" Name="ScreenTip" Placeholder="Screen Tip" Style="width: 100%" />
+            <RadzenTextBox @bind-Value="_model.TargetFrame" Name="TargetFrame" Placeholder="Target Frame" Style="width: 100%" />
+            <RadzenTextArea @bind-Value="_model.Comments" Name="Comments" Placeholder="Comments" Style="width: 100%" />
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Disabled="@(_model.PortalLinkId == 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? PortalLinkId { get; set; }
+
+    private PortalLink _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (PortalLinkId is null)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.PortalLinks.FindAsync(PortalLinkId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(PortalLink model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.PortalLinkId == 0)
+        {
+            db.PortalLinks.Add(model);
+        }
+        else
+        {
+            db.PortalLinks.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this portal link?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.PortalLinks.FindAsync(_model.PortalLinkId);
+        if (entity is not null)
+        {
+            db.PortalLinks.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

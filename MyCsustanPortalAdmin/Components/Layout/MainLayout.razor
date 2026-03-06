@@ -1,10 +1,33 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-@Body
+<RadzenLayout>
+    <RadzenHeader>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Style="width: 100%">
+            <RadzenText Text="MyCsustan Portal Admin" Style="font-size: 1.1rem; font-weight: 600;" />
+        </RadzenStack>
+    </RadzenHeader>
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
-</div>
-<RadzenComponents @rendermode="InteractiveServer" />
+    <RadzenSidebar @bind-Expanded="_sidebarExpanded" Style="width: 260px">
+        <RadzenPanelMenu>
+            <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" />
+            <RadzenPanelMenuItem Text="Admin Users" Icon="group" Path="/admin-users" />
+            <RadzenPanelMenuItem Text="Portal Links" Icon="link" Path="/portal-links" />
+            <RadzenPanelMenuItem Text="Portal Link Groups" Icon="folder" Path="/portal-link-groups" />
+            <RadzenPanelMenuItem Text="Portal Roles" Icon="security" Path="/portal-roles" />
+            <RadzenPanelMenuItem Text="Portal Config" Icon="settings" Path="/portal-config" />
+            <RadzenPanelMenuItem Text="Computer Labs" Icon="dns" Path="/computer-labs" />
+            <RadzenPanelMenuItem Text="Lab Hours" Icon="schedule" Path="/computer-lab-hours" />
+        </RadzenPanelMenu>
+    </RadzenSidebar>
+
+    <RadzenBody>
+        <div class="main-body">
+            @Body
+        </div>
+        <RadzenDialog />
+    </RadzenBody>
+</RadzenLayout>
+
+@code {
+    private bool _sidebarExpanded = true;
+}

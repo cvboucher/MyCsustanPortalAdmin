@@ -1,0 +1,68 @@
+@page "/portal-config"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>Portal Config</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>Portal Config</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="PortalConfig"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="10">
+        <Columns>
+            <RadzenDataGridColumn TItem="PortalConfig" Property="PortalConfigId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="PortalConfig" Property="MaskedEmplid" Title="Masked Emplid" />
+            <RadzenDataGridColumn TItem="PortalConfig" Property="MaskedSsn" Title="Masked SSN" />
+            <RadzenDataGridColumn TItem="PortalConfig" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.PortalConfigId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<PortalConfig>? _query;
+    private RadzenDataGrid<PortalConfig>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.PortalConfigs.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<PortalConfigDialog>(
+            id is null ? "Add Portal Config" : "Edit Portal Config",
+            new Dictionary<string, object?> { [nameof(PortalConfigDialog.PortalConfigId)] = id },
+            new DialogOptions { Width = "900px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

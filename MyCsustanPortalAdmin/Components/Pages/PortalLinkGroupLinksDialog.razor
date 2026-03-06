@@ -1,0 +1,76 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h4>Links</h4>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="PortalLinkGroupLink"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="PortalLinkGroupLink" Property="PortalLinkId" Title="Link ID" Width="100px" />
+            <RadzenDataGridColumn TItem="PortalLinkGroupLink" Title="Title">
+                <Template Context="item">
+                    @item.PortalLink.Title
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="PortalLinkGroupLink" Property="SortOrder" Title="Sort" Width="100px" />
+            <RadzenDataGridColumn TItem="PortalLinkGroupLink" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.PortalLinkId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    [Parameter] public int PortalLinkGroupId { get; set; }
+
+    private MyCsustanContext? _db;
+    private IQueryable<PortalLinkGroupLink>? _query;
+    private RadzenDataGrid<PortalLinkGroupLink>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.PortalLinkGroupLinks
+            .Include(l => l.PortalLink)
+            .Where(l => l.PortalLinkGroupId == PortalLinkGroupId)
+            .AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int portalLinkId) => OpenDialogAsync(portalLinkId);
+
+    private async Task OpenDialogAsync(int? portalLinkId)
+    {
+        var result = await DialogService.OpenAsync<PortalLinkGroupLinkDialog>(
+            portalLinkId is null ? "Add Link" : "Edit Link",
+            new Dictionary<string, object?>
+            {
+                [nameof(PortalLinkGroupLinkDialog.PortalLinkGroupId)] = PortalLinkGroupId,
+                [nameof(PortalLinkGroupLinkDialog.PortalLinkId)] = portalLinkId
+            },
+            new DialogOptions { Width = "600px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

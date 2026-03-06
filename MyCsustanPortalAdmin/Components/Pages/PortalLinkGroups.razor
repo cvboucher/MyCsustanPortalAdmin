@@ -1,0 +1,84 @@
+@page "/portal-link-groups"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>Portal Link Groups</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>Portal Link Groups</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="PortalLinkGroup"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="PortalLinkGroup" Property="PortalLinkGroupId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="PortalLinkGroup" Property="PortalLinkGroupName" Title="Group Name" />
+            <RadzenDataGridColumn TItem="PortalLinkGroup" Property="AllUsers" Title="All Users" Width="110px" />
+            <RadzenDataGridColumn TItem="PortalLinkGroup" Property="IsInactive" Title="Inactive" Width="110px" />
+            <RadzenDataGridColumn TItem="PortalLinkGroup" Property="SortOrder" Title="Sort" Width="100px" />
+            <RadzenDataGridColumn TItem="PortalLinkGroup" Title="Actions" Width="160px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.PortalLinkGroupId)" />
+                    <RadzenButton Size="ButtonSize.Small" Text="Links" Icon="link" ButtonStyle="ButtonStyle.Secondary" Click="() => EditLinksAsync(item.PortalLinkGroupId)" Style="margin-left: 0.5rem;" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<PortalLinkGroup>? _query;
+    private RadzenDataGrid<PortalLinkGroup>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.PortalLinkGroups.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task EditLinksAsync(int id)
+    {
+        var result = await DialogService.OpenAsync<PortalLinkGroupLinksDialog>(
+            "Portal Link Group Links",
+            new Dictionary<string, object?> { [nameof(PortalLinkGroupLinksDialog.PortalLinkGroupId)] = id },
+            new DialogOptions { Width = "900px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<PortalLinkGroupDialog>(
+            id is null ? "Add Portal Link Group" : "Edit Portal Link Group",
+            new Dictionary<string, object?> { [nameof(PortalLinkGroupDialog.PortalLinkGroupId)] = id },
+            new DialogOptions { Width = "900px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

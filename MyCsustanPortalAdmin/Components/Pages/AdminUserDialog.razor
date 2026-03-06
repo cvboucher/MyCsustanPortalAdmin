@@ -1,0 +1,78 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="AdminUser" Submit="OnSubmit">
+    <RadzenFieldset Text="Admin User">
+        <RadzenStack Gap="1rem">
+            <RadzenTextBox @bind-Value="_model.Username" Name="Username" Placeholder="Username" Style="width: 100%" />
+            <RadzenTextBox @bind-Value="_model.FirstName" Name="FirstName" Placeholder="First Name" Style="width: 100%" />
+            <RadzenTextBox @bind-Value="_model.LastName" Name="LastName" Placeholder="Last Name" Style="width: 100%" />
+            <RadzenNumeric TValue="int" @bind-Value="_model.UserLevel" Name="UserLevel" Placeholder="User Level" Style="width: 100%" />
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Disabled="@(_model.AdminUserId == 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? AdminUserId { get; set; }
+
+    private AdminUser _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AdminUserId is null)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.AdminUsers.FindAsync(AdminUserId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(AdminUser model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.AdminUserId == 0)
+        {
+            db.AdminUsers.Add(model);
+        }
+        else
+        {
+            db.AdminUsers.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this admin user?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.AdminUsers.FindAsync(_model.AdminUserId);
+        if (entity is not null)
+        {
+            db.AdminUsers.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

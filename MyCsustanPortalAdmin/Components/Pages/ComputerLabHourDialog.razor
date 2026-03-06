@@ -1,0 +1,88 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="ComputerLabHour" Submit="OnSubmit">
+    <RadzenFieldset Text="Lab Hours">
+        <RadzenStack Gap="1rem">
+            <RadzenDropDown Data="_labs"
+                            TextProperty="ComputerLabName"
+                            ValueProperty="ComputerLabId"
+                            @bind-Value="_model.ComputerLabId"
+                            Style="width: 100%" />
+            <RadzenNumeric TValue="byte" @bind-Value="_model.DayOfWeek" Name="DayOfWeek" Placeholder="Day of Week" Style="width: 100%" />
+            <RadzenDatePicker @bind-Value="_model.EffDate" Name="EffDate" ShowTime="false" Style="width: 100%" />
+            <RadzenDatePicker @bind-Value="_model.OpenTime" Name="OpenTime" ShowTime="true" Style="width: 100%" />
+            <RadzenDatePicker @bind-Value="_model.CloseTime" Name="CloseTime" ShowTime="true" Style="width: 100%" />
+            <RadzenCheckBox @bind-Value="_model.Closed" Name="Closed" />
+            <label>Closed</label>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Disabled="@(_model.ComputerLabHoursId == 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? ComputerLabHoursId { get; set; }
+
+    private ComputerLabHour _model = new();
+    private List<ComputerLab> _labs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _labs = await db.ComputerLabs.AsNoTracking().OrderBy(l => l.ComputerLabName).ToListAsync();
+
+        if (ComputerLabHoursId is null)
+        {
+            return;
+        }
+
+        var entity = await db.ComputerLabHours.FindAsync(ComputerLabHoursId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(ComputerLabHour model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.ComputerLabHoursId == 0)
+        {
+            db.ComputerLabHours.Add(model);
+        }
+        else
+        {
+            db.ComputerLabHours.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this lab hours record?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.ComputerLabHours.FindAsync(_model.ComputerLabHoursId);
+        if (entity is not null)
+        {
+            db.ComputerLabHours.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

@@ -1,0 +1,73 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="PortalRole" Submit="OnSubmit">
+    <RadzenFieldset Text="Portal Role">
+        <RadzenTextBox @bind-Value="_model.RoleName" Name="RoleName" Placeholder="Role Name" Style="width: 100%" />
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Disabled="@(_model.PortalRoleId == 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? PortalRoleId { get; set; }
+
+    private PortalRole _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (PortalRoleId is null)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.PortalRoles.FindAsync(PortalRoleId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(PortalRole model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.PortalRoleId == 0)
+        {
+            db.PortalRoles.Add(model);
+        }
+        else
+        {
+            db.PortalRoles.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this role?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.PortalRoles.FindAsync(_model.PortalRoleId);
+        if (entity is not null)
+        {
+            db.PortalRoles.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

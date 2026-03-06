@@ -1,0 +1,67 @@
+@page "/portal-roles"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>Portal Roles</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>Portal Roles</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="PortalRole"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="PortalRole" Property="PortalRoleId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="PortalRole" Property="RoleName" Title="Role Name" />
+            <RadzenDataGridColumn TItem="PortalRole" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.PortalRoleId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<PortalRole>? _query;
+    private RadzenDataGrid<PortalRole>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.PortalRoles.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<PortalRoleDialog>(
+            id is null ? "Add Portal Role" : "Edit Portal Role",
+            new Dictionary<string, object?> { [nameof(PortalRoleDialog.PortalRoleId)] = id },
+            new DialogOptions { Width = "600px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

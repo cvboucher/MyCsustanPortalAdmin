@@ -1,0 +1,76 @@
+@page "/computer-lab-hours"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>Computer Lab Hours</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>Computer Lab Hours</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="ComputerLabHour"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="ComputerLabHour" Property="ComputerLabHoursId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="ComputerLabHour" Title="Lab">
+                <Template Context="item">
+                    @item.ComputerLab.ComputerLabName
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="ComputerLabHour" Property="DayOfWeek" Title="Day" Width="100px" />
+            <RadzenDataGridColumn TItem="ComputerLabHour" Property="EffDate" Title="Effective" Width="150px" />
+            <RadzenDataGridColumn TItem="ComputerLabHour" Property="OpenTime" Title="Open" Width="150px" />
+            <RadzenDataGridColumn TItem="ComputerLabHour" Property="CloseTime" Title="Close" Width="150px" />
+            <RadzenDataGridColumn TItem="ComputerLabHour" Property="Closed" Title="Closed" Width="110px" />
+            <RadzenDataGridColumn TItem="ComputerLabHour" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.ComputerLabHoursId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<ComputerLabHour>? _query;
+    private RadzenDataGrid<ComputerLabHour>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.ComputerLabHours.Include(h => h.ComputerLab).AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<ComputerLabHourDialog>(
+            id is null ? "Add Lab Hours" : "Edit Lab Hours",
+            new Dictionary<string, object?> { [nameof(ComputerLabHourDialog.ComputerLabHoursId)] = id },
+            new DialogOptions { Width = "700px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}
