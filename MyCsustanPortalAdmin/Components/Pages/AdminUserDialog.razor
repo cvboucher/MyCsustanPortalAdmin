@@ -1,4 +1,3 @@
-
 @inject IDbContextFactory<MyCsustanContext> DbFactory
 @inject DialogService DialogService
 
@@ -13,9 +12,6 @@
             </RadzenFormField>
             <RadzenFormField Text="Last Name" AllowFloatingLabel="false">
                 <RadzenTextBox @bind-Value="_model.LastName" Name="LastName" Style="width: 100%" />
-            </RadzenFormField>
-            <RadzenFormField Text="User Level" AllowFloatingLabel="false">
-                <RadzenNumeric TValue="int" @bind-Value="_model.UserLevel" Name="UserLevel" Style="width: 100%" />
             </RadzenFormField>
         </RadzenStack>
     </RadzenFieldset>
@@ -38,6 +34,7 @@
     {
         if (AdminUserId is null)
         {
+            _model.UserLevel = 100;
             return;
         }
 
@@ -55,6 +52,7 @@
 
         if (model.AdminUserId == 0)
         {
+            model.UserLevel = 100;
             db.AdminUsers.Add(model);
         }
         else
