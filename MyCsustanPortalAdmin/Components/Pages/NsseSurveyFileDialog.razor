@@ -20,10 +20,10 @@
                 <RadzenDatePicker @bind-Value="_model.LoadDateTime" Name="LoadDateTime" ShowTime="true" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="Survey Invitation" AllowFloatingLabel="false">
-                <RadzenTextArea @bind-Value="_model.SurveyInvitation" Name="SurveyInvitation" Style="width: 100%" Rows="6" />
+                <RadzenHtmlEditor @bind-Value="_model.SurveyInvitation" Name="SurveyInvitation" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="Creation Date" AllowFloatingLabel="false">
-                <RadzenDatePicker @bind-Value="_model.CreationDateTime" Name="CreationDateTime" ShowTime="true" Style="width: 100%" />
+                <RadzenDatePicker @bind-Value="_model.CreationDateTime" Name="CreationDateTime" ShowTime="true" Disabled="true" Style="width: 100%" />
             </RadzenFormField>
         </RadzenStack>
     </RadzenFieldset>
