@@ -15,7 +15,7 @@
                 <label>Inactive</label>
             </RadzenStack>
             <RadzenFormField Text="Portal Link" AllowFloatingLabel="false">
-                <RadzenDropDown Data="_links" TextProperty="Title" ValueProperty="PortalLinkId" @bind-Value="_model.PortalLinkId" Style="width: 100%" AllowClear="true" />
+                <RadzenDropDown Data="_links" TextProperty="Title" ValueProperty="PortalLinkId" AllowFiltering="true" @bind-Value="_model.PortalLinkId" Style="width: 100%" AllowClear="true" />
             </RadzenFormField>
             <RadzenFormField Text="Masked Emplid" AllowFloatingLabel="false">
                 <RadzenTextBox @bind-Value="_model.MaskedEmplid" Name="MaskedEmplid" Style="width: 100%" />

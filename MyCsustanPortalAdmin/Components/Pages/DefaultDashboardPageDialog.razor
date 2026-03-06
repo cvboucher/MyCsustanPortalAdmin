@@ -5,7 +5,7 @@
     <RadzenFieldset Text="Default Dashboard Page">
         <RadzenStack Gap="1rem">
             <RadzenFormField Text="Dashboard Page" AllowFloatingLabel="false">
-                <RadzenDropDown Data="_dashboardPages" TextProperty="Title" ValueProperty="DashboardPageId" @bind-Value="_model.DashboardPageId" Style="width: 100%" />
+                <RadzenDropDown Data="_dashboardPages" TextProperty="Title" ValueProperty="DashboardPageId" AllowFiltering="true" @bind-Value="_model.DashboardPageId" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="Alternate Title" AllowFloatingLabel="false">
                 <RadzenTextBox @bind-Value="_model.AlternateTitle" Name="AlternateTitle" Style="width: 100%" />
@@ -31,6 +31,7 @@
                                     Chips="true"
                                     AllowClear="true"
                                     MaxSelectedLabels="30"
+                                    AllowFiltering="true"
                                     @bind-Value="_selectedRoleIds"
                                     Style="width: 100%" />
                 </RadzenFormField>

@@ -5,22 +5,22 @@
     <RadzenFieldset Text="Portal Config">
         <RadzenStack Gap="1rem">
             <RadzenFormField Text="PeopleSoft CS Base URL" AllowFloatingLabel="false">
-                <RadzenDropDown Data="_baseUrls" TextProperty="BaseUrlName" ValueProperty="BaseUrlId" @bind-Value="_model.PeopleSoftCsBaseUrlId" Style="width: 100%" />
+                <RadzenDropDown Data="_baseUrls" TextProperty="BaseUrlName" ValueProperty="BaseUrlId" AllowFiltering="true" @bind-Value="_model.PeopleSoftCsBaseUrlId" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="PeopleSoft HR Base URL" AllowFloatingLabel="false">
-                <RadzenDropDown Data="_baseUrls" TextProperty="BaseUrlName" ValueProperty="BaseUrlId" @bind-Value="_model.PeopleSoftHrBaseUrlId" Style="width: 100%" />
+                <RadzenDropDown Data="_baseUrls" TextProperty="BaseUrlName" ValueProperty="BaseUrlId" AllowFiltering="true" @bind-Value="_model.PeopleSoftHrBaseUrlId" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="CashNet Base URL" AllowFloatingLabel="false">
-                <RadzenDropDown Data="_baseUrls" TextProperty="BaseUrlName" ValueProperty="BaseUrlId" @bind-Value="_model.CashetBaseUrlId" Style="width: 100%" />
+                <RadzenDropDown Data="_baseUrls" TextProperty="BaseUrlName" ValueProperty="BaseUrlId" AllowFiltering="true" @bind-Value="_model.CashetBaseUrlId" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="Campus Website Base URL" AllowFloatingLabel="false">
-                <RadzenDropDown Data="_baseUrls" TextProperty="BaseUrlName" ValueProperty="BaseUrlId" @bind-Value="_model.CampusWebsiteBaseUrlId" Style="width: 100%" />
+                <RadzenDropDown Data="_baseUrls" TextProperty="BaseUrlName" ValueProperty="BaseUrlId" AllowFiltering="true" @bind-Value="_model.CampusWebsiteBaseUrlId" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="Draw Base URL" AllowFloatingLabel="false">
-                <RadzenDropDown Data="_baseUrls" TextProperty="BaseUrlName" ValueProperty="BaseUrlId" @bind-Value="_model.DrawBaseUrlId" Style="width: 100%" AllowClear="true" />
+                <RadzenDropDown Data="_baseUrls" TextProperty="BaseUrlName" ValueProperty="BaseUrlId" AllowFiltering="true" @bind-Value="_model.DrawBaseUrlId" Style="width: 100%" AllowClear="true" />
             </RadzenFormField>
             <RadzenFormField Text="Covid Screening Link Group" AllowFloatingLabel="false">
-                <RadzenDropDown Data="_linkGroups" TextProperty="PortalLinkGroupName" ValueProperty="PortalLinkGroupId" @bind-Value="_model.CovidScreeningPortalLinkGroupId" Style="width: 100%" AllowClear="true" />
+                <RadzenDropDown Data="_linkGroups" TextProperty="PortalLinkGroupName" ValueProperty="PortalLinkGroupId" AllowFiltering="true" @bind-Value="_model.CovidScreeningPortalLinkGroupId" Style="width: 100%" AllowClear="true" />
             </RadzenFormField>
             <RadzenFormField Text="Masked Emplid" AllowFloatingLabel="false">
                 <RadzenTextBox @bind-Value="_model.MaskedEmplid" Name="MaskedEmplid" Style="width: 100%" />
