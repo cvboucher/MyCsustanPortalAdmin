@@ -4,12 +4,24 @@
 <RadzenTemplateForm Data="@_model" TItem="PortalLink" Submit="OnSubmit">
     <RadzenFieldset Text="Portal Link">
         <RadzenStack Gap="1rem">
-            <RadzenTextBox @bind-Value="_model.Title" Name="Title" Placeholder="Title" Style="width: 100%" />
-            <RadzenTextBox @bind-Value="_model.LinkUrl" Name="LinkUrl" Placeholder="URL" Style="width: 100%" />
-            <RadzenTextBox @bind-Value="_model.ImageUrl" Name="ImageUrl" Placeholder="Image URL" Style="width: 100%" />
-            <RadzenTextBox @bind-Value="_model.ScreenTip" Name="ScreenTip" Placeholder="Screen Tip" Style="width: 100%" />
-            <RadzenTextBox @bind-Value="_model.TargetFrame" Name="TargetFrame" Placeholder="Target Frame" Style="width: 100%" />
-            <RadzenTextArea @bind-Value="_model.Comments" Name="Comments" Placeholder="Comments" Style="width: 100%" />
+            <RadzenFormField Text="Title" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.Title" Name="Title" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="URL" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.LinkUrl" Name="LinkUrl" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Image URL" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.ImageUrl" Name="ImageUrl" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Screen Tip" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.ScreenTip" Name="ScreenTip" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Target Frame" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.TargetFrame" Name="TargetFrame" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Comments" AllowFloatingLabel="false">
+                <RadzenTextArea @bind-Value="_model.Comments" Name="Comments" Style="width: 100%" />
+            </RadzenFormField>
         </RadzenStack>
     </RadzenFieldset>
 

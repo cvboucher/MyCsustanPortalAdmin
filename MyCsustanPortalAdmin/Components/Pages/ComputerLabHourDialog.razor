@@ -4,17 +4,28 @@
 <RadzenTemplateForm Data="@_model" TItem="ComputerLabHour" Submit="OnSubmit">
     <RadzenFieldset Text="Lab Hours">
         <RadzenStack Gap="1rem">
-            <RadzenDropDown Data="_labs"
-                            TextProperty="ComputerLabName"
-                            ValueProperty="ComputerLabId"
-                            @bind-Value="_model.ComputerLabId"
-                            Style="width: 100%" />
-            <RadzenNumeric TValue="byte" @bind-Value="_model.DayOfWeek" Name="DayOfWeek" Placeholder="Day of Week" Style="width: 100%" />
-            <RadzenDatePicker @bind-Value="_model.EffDate" Name="EffDate" ShowTime="false" Style="width: 100%" />
-            <RadzenDatePicker @bind-Value="_model.OpenTime" Name="OpenTime" ShowTime="true" Style="width: 100%" />
-            <RadzenDatePicker @bind-Value="_model.CloseTime" Name="CloseTime" ShowTime="true" Style="width: 100%" />
-            <RadzenCheckBox @bind-Value="_model.Closed" Name="Closed" />
-            <label>Closed</label>
+            <RadzenFormField Text="Computer Lab" AllowFloatingLabel="false">
+                <RadzenDropDown Data="_labs"
+                                TextProperty="ComputerLabName"
+                                ValueProperty="ComputerLabId"
+                                @bind-Value="_model.ComputerLabId"
+                                Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Day of Week" AllowFloatingLabel="false">
+                <RadzenNumeric TValue="byte" @bind-Value="_model.DayOfWeek" Name="DayOfWeek" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Effective Date" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.EffDate" Name="EffDate" ShowTime="false" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Open Time" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.OpenTime" Name="OpenTime" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Close Time" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.CloseTime" Name="CloseTime" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Closed" AllowFloatingLabel="false">
+                <RadzenCheckBox @bind-Value="_model.Closed" Name="Closed" />
+            </RadzenFormField>
         </RadzenStack>
     </RadzenFieldset>
 

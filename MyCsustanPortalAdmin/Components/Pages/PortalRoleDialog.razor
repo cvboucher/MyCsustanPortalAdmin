@@ -3,7 +3,9 @@
 
 <RadzenTemplateForm Data="@_model" TItem="PortalRole" Submit="OnSubmit">
     <RadzenFieldset Text="Portal Role">
-        <RadzenTextBox @bind-Value="_model.RoleName" Name="RoleName" Placeholder="Role Name" Style="width: 100%" />
+        <RadzenFormField Text="Role Name" AllowFloatingLabel="false">
+            <RadzenTextBox @bind-Value="_model.RoleName" Name="RoleName" Style="width: 100%" />
+        </RadzenFormField>
     </RadzenFieldset>
 
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mt-3">

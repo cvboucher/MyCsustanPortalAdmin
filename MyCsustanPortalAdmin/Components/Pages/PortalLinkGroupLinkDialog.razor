@@ -4,13 +4,17 @@
 <RadzenTemplateForm Data="@_model" TItem="PortalLinkGroupLink" Submit="OnSubmit">
     <RadzenFieldset Text="Group Link">
         <RadzenStack Gap="1rem">
-            <RadzenDropDown Data="_links"
-                            TextProperty="Title"
-                            ValueProperty="PortalLinkId"
-                            @bind-Value="_model.PortalLinkId"
-                            Disabled="@(_isExisting)"
-                            Style="width: 100%" />
-            <RadzenNumeric TValue="int?" @bind-Value="_model.SortOrder" Name="SortOrder" Placeholder="Sort Order" Style="width: 100%" />
+            <RadzenFormField Text="Portal Link" AllowFloatingLabel="false">
+                <RadzenDropDown Data="_links"
+                                TextProperty="Title"
+                                ValueProperty="PortalLinkId"
+                                @bind-Value="_model.PortalLinkId"
+                                Disabled="@(_isExisting)"
+                                Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Sort Order" AllowFloatingLabel="false">
+                <RadzenNumeric TValue="int?" @bind-Value="_model.SortOrder" Name="SortOrder" Style="width: 100%" />
+            </RadzenFormField>
         </RadzenStack>
     </RadzenFieldset>
 

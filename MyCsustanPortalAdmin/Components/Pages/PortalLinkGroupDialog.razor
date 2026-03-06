@@ -4,20 +4,28 @@
 <RadzenTemplateForm Data="@_model" TItem="PortalLinkGroup" Submit="OnSubmit">
     <RadzenFieldset Text="Portal Link Group">
         <RadzenStack Gap="1rem">
-            <RadzenTextBox @bind-Value="_model.PortalLinkGroupName" Name="PortalLinkGroupName" Placeholder="Group Name" Style="width: 100%" />
-            <RadzenNumeric TValue="int?" @bind-Value="_model.SortOrder" Name="SortOrder" Placeholder="Sort Order" Style="width: 100%" />
-            <RadzenCheckBox @bind-Value="_model.AllUsers" Name="AllUsers" />
-            <label>All Users</label>
-            <RadzenCheckBox @bind-Value="_model.IsInactive" Name="IsInactive" />
-            <label>Inactive</label>
+            <RadzenFormField Text="Group Name" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.PortalLinkGroupName" Name="PortalLinkGroupName" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Sort Order" AllowFloatingLabel="false">
+                <RadzenNumeric TValue="int?" @bind-Value="_model.SortOrder" Name="SortOrder" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="All Users" AllowFloatingLabel="false">
+                <RadzenCheckBox @bind-Value="_model.AllUsers" Name="AllUsers" />
+            </RadzenFormField>
+            <RadzenFormField Text="Inactive" AllowFloatingLabel="false">
+                <RadzenCheckBox @bind-Value="_model.IsInactive" Name="IsInactive" />
+            </RadzenFormField>
 
             <RadzenFieldset Text="Roles">
-                <RadzenListBox Data="_roles"
-                               TextProperty="RoleName"
-                               ValueProperty="PortalRoleId"
-                               Multiple="true"
-                               @bind-Value="_selectedRoleIds"
-                               Style="width: 100%; max-height: 240px" />
+                <RadzenFormField Text="Role Assignments" AllowFloatingLabel="false">
+                    <RadzenListBox Data="_roles"
+                                   TextProperty="RoleName"
+                                   ValueProperty="PortalRoleId"
+                                   Multiple="true"
+                                   @bind-Value="_selectedRoleIds"
+                                   Style="width: 100%; max-height: 240px" />
+                </RadzenFormField>
             </RadzenFieldset>
         </RadzenStack>
     </RadzenFieldset>

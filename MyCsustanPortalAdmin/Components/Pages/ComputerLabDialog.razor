@@ -3,7 +3,9 @@
 
 <RadzenTemplateForm Data="@_model" TItem="ComputerLab" Submit="OnSubmit">
     <RadzenFieldset Text="Computer Lab">
-        <RadzenTextBox @bind-Value="_model.ComputerLabName" Name="ComputerLabName" Placeholder="Lab Name" Style="width: 100%" />
+        <RadzenFormField Text="Lab Name" AllowFloatingLabel="false">
+            <RadzenTextBox @bind-Value="_model.ComputerLabName" Name="ComputerLabName" Style="width: 100%" />
+        </RadzenFormField>
     </RadzenFieldset>
 
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="mt-3">

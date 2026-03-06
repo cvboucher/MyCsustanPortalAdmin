@@ -5,10 +5,18 @@
 <RadzenTemplateForm Data="@_model" TItem="AdminUser" Submit="OnSubmit">
     <RadzenFieldset Text="Admin User">
         <RadzenStack Gap="1rem">
-            <RadzenTextBox @bind-Value="_model.Username" Name="Username" Placeholder="Username" Style="width: 100%" />
-            <RadzenTextBox @bind-Value="_model.FirstName" Name="FirstName" Placeholder="First Name" Style="width: 100%" />
-            <RadzenTextBox @bind-Value="_model.LastName" Name="LastName" Placeholder="Last Name" Style="width: 100%" />
-            <RadzenNumeric TValue="int" @bind-Value="_model.UserLevel" Name="UserLevel" Placeholder="User Level" Style="width: 100%" />
+            <RadzenFormField Text="Username" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.Username" Name="Username" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="First Name" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.FirstName" Name="FirstName" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Last Name" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.LastName" Name="LastName" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="User Level" AllowFloatingLabel="false">
+                <RadzenNumeric TValue="int" @bind-Value="_model.UserLevel" Name="UserLevel" Style="width: 100%" />
+            </RadzenFormField>
         </RadzenStack>
     </RadzenFieldset>
 
