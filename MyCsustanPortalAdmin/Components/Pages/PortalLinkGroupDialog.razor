@@ -10,21 +10,24 @@
             <RadzenFormField Text="Sort Order" AllowFloatingLabel="false">
                 <RadzenNumeric TValue="int?" @bind-Value="_model.SortOrder" Name="SortOrder" Style="width: 100%" />
             </RadzenFormField>
-            <RadzenFormField Text="All Users" AllowFloatingLabel="false">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                 <RadzenCheckBox @bind-Value="_model.AllUsers" Name="AllUsers" />
-            </RadzenFormField>
-            <RadzenFormField Text="Inactive" AllowFloatingLabel="false">
+                <label>All Users</label>
+            </RadzenStack>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                 <RadzenCheckBox @bind-Value="_model.IsInactive" Name="IsInactive" />
-            </RadzenFormField>
+                <label>Inactive</label>
+            </RadzenStack>
 
             <RadzenFieldset Text="Roles">
                 <RadzenFormField Text="Role Assignments" AllowFloatingLabel="false">
-                    <RadzenListBox Data="_roles"
-                                   TextProperty="RoleName"
-                                   ValueProperty="PortalRoleId"
-                                   Multiple="true"
-                                   @bind-Value="_selectedRoleIds"
-                                   Style="width: 100%; max-height: 240px" />
+                    <RadzenDropDown Data="_roles"
+                                    TextProperty="RoleName"
+                                    ValueProperty="PortalRoleId"
+                                    Multiple="true"
+                                    Chips="true"
+                                    @bind-Value="_selectedRoleIds"
+                                    Style="width: 100%" />
                 </RadzenFormField>
             </RadzenFieldset>
         </RadzenStack>
