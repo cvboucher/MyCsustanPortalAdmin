@@ -24,13 +24,15 @@
 
             <RadzenFieldset Text="Roles">
                 <RadzenFormField Text="Role Assignments" AllowFloatingLabel="false">
-                    <RadzenListBox Data="_roles" TextProperty="RoleName" ValueProperty="PortalRoleId" Multiple="true" @bind-Value="_selectedRoleIds" Style="width: 100%; max-height: 200px" />
-                </RadzenFormField>
-            </RadzenFieldset>
-
-            <RadzenFieldset Text="User Profiles">
-                <RadzenFormField Text="User Profiles" AllowFloatingLabel="false">
-                    <RadzenListBox Data="_userProfiles" TextProperty="Username" ValueProperty="UserProfileId" Multiple="true" @bind-Value="_selectedUserProfileIds" Style="width: 100%; max-height: 200px" />
+                    <RadzenDropDown Data="_roles"
+                                    TextProperty="RoleName"
+                                    ValueProperty="PortalRoleId"
+                                    Multiple="true"
+                                    Chips="true"
+                                    AllowClear="true"
+                                    MaxSelectedLabels="30"
+                                    @bind-Value="_selectedRoleIds"
+                                    Style="width: 100%" />
                 </RadzenFormField>
             </RadzenFieldset>
         </RadzenStack>
@@ -51,16 +53,13 @@
     private DefaultDashboardPage _model = new();
     private List<DashboardPage> _dashboardPages = new();
     private List<PortalRole> _roles = new();
-    private List<UserProfile> _userProfiles = new();
     private IList<int> _selectedRoleIds = new List<int>();
-    private IList<int> _selectedUserProfileIds = new List<int>();
 
     protected override async Task OnInitializedAsync()
     {
         await using var db = await DbFactory.CreateDbContextAsync();
         _dashboardPages = await db.DashboardPages.AsNoTracking().OrderBy(d => d.Title).ToListAsync();
         _roles = await db.PortalRoles.AsNoTracking().OrderBy(r => r.RoleName).ToListAsync();
-        _userProfiles = await db.UserProfiles.AsNoTracking().OrderBy(u => u.Username).ToListAsync();
 
         if (DefaultDashboardPageId is null)
         {
@@ -69,14 +68,12 @@
 
         var entity = await db.DefaultDashboardPages
             .Include(d => d.PortalRoles)
-            .Include(d => d.UserProfiles)
             .FirstOrDefaultAsync(d => d.DefaultDashboardPageId == DefaultDashboardPageId.Value);
 
         if (entity is not null)
         {
             _model = entity;
             _selectedRoleIds = entity.PortalRoles.Select(r => r.PortalRoleId).ToList();
-            _selectedUserProfileIds = entity.UserProfiles.Select(u => u.UserProfileId).ToList();
         }
     }
 
@@ -94,7 +91,6 @@
         {
             entity = await db.DefaultDashboardPages
                 .Include(d => d.PortalRoles)
-                .Include(d => d.UserProfiles)
                 .FirstAsync(d => d.DefaultDashboardPageId == model.DefaultDashboardPageId);
         }
 
@@ -111,15 +107,6 @@
         foreach (var role in selectedRoles)
         {
             entity.PortalRoles.Add(role);
-        }
-
-        entity.UserProfiles.Clear();
-        var selectedUsers = await db.UserProfiles
-            .Where(u => _selectedUserProfileIds.Contains(u.UserProfileId))
-            .ToListAsync();
-        foreach (var user in selectedUsers)
-        {
-            entity.UserProfiles.Add(user);
         }
 
         await db.SaveChangesAsync();
