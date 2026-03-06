@@ -1,0 +1,189 @@
+﻿{
+   "CodeGenerationMode": 6,
+   "ContextClassName": "MyCsustanContext",
+   "ContextNamespace": "Data",
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "IrregularWords": null,
+   "MinimumProductVersion": "2.6.1224",
+   "ModelNamespace": "Entities",
+   "OutputContextPath": "Data\\Generated",
+   "OutputPath": "Entities\\Generated",
+   "PluralRules": null,
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "MyCsustanPortalAdmin",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 2,
+   "SelectedToBeGenerated": 0,
+   "SingularRules": null,
+   "T4TemplatePath": null,
+   "Tables": [
+      {
+         "Name": "[dbo].[AdfWidget]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AdfWidgetRole]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AdminUser]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AuthenticationTicket]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BaseUrl]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ComputerLab]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ComputerLabHours]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CovidClearance]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DashboardPage]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DateAndDeadline]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DateAndDeadlineRole]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DefaultDashboardPage]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DefaultDashboardPageRole]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DefaultDashboardPageUser]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LoginAs]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[NsseSurveyFile]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[NsseSurveyLink]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Oauth2State]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Oauth2Token]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Page]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PageLoad]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PeopleSoftInstance]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PortalConfig]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PortalLink]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PortalLinkClick]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PortalLinkGroup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PortalLinkGroupLink]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PortalLinkGroupRole]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PortalRole]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PortalUserCount]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PurpleAirSensor]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RssFeed]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[StanCommunication]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[StanCommunicationRole]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserProfile]",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": null,
+   "UncountableWords": null,
+   "UseAsyncStoredProcedureCalls": true,
+   "UseBoolPropertiesWithoutDefaultSql": true,
+   "UseDatabaseNames": false,
+   "UseDatabaseNamesForRoutines": true,
+   "UseDateOnlyTimeOnly": true,
+   "UseDbContextSplitting": false,
+   "UseDecimalDataAnnotationForSprocResult": true,
+   "UseFluentApiOnly": false,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseInternalAccessModifiersForSprocsAndFunctions": false,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": true,
+   "UsePrefixNavigationNaming": false,
+   "UseSchemaFolders": false,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": false,
+   "UseT4": false,
+   "UseT4Split": false
+}
