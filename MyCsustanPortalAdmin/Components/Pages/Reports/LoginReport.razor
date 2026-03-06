@@ -1,0 +1,56 @@
+@page "/reports/login"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+
+<PageTitle>Login Report</PageTitle>
+
+<RadzenCard>
+    <h3>Login Report</h3>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center" class="rz-mb-3">
+        <RadzenDatePicker @bind-Value="_from" ShowTime="true" Style="width: 200px" />
+        <RadzenDatePicker @bind-Value="_to" ShowTime="true" Style="width: 200px" />
+        <RadzenButton Text="Run" Icon="play_arrow" Click="LoadAsync" />
+    </RadzenStack>
+
+    <ReportGenerator Items="_results">
+        <HeaderTemplate>
+            <tr>
+                <th>Username</th>
+                <th>Last Login</th>
+            </tr>
+        </HeaderTemplate>
+        <RowTemplate Context="row">
+            <tr>
+                <td>@row.Username</td>
+                <td>@row.LastLoginDateTime</td>
+            </tr>
+        </RowTemplate>
+    </ReportGenerator>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private DateTime _from = DateTime.Today.AddDays(-7);
+    private DateTime _to = DateTime.Today.AddDays(1);
+    private List<UserProfile> _results = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _results = await _db!.UserProfiles
+            .Where(u => u.LastLoginDateTime >= _from && u.LastLoginDateTime <= _to)
+            .OrderByDescending(u => u.LastLoginDateTime)
+            .ToListAsync();
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

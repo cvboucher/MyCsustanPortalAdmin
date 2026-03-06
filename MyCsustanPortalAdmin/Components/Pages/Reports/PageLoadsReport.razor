@@ -1,0 +1,60 @@
+@page "/reports/page-loads"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+
+<PageTitle>Page Loads Report</PageTitle>
+
+<RadzenCard>
+    <h3>Page Loads Report</h3>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center" class="rz-mb-3">
+        <RadzenDatePicker @bind-Value="_from" ShowTime="true" Style="width: 200px" />
+        <RadzenDatePicker @bind-Value="_to" ShowTime="true" Style="width: 200px" />
+        <RadzenButton Text="Run" Icon="play_arrow" Click="LoadAsync" />
+    </RadzenStack>
+
+    <ReportGenerator Items="_results">
+        <HeaderTemplate>
+            <tr>
+                <th>Date</th>
+                <th>Page</th>
+                <th>User</th>
+            </tr>
+        </HeaderTemplate>
+        <RowTemplate Context="row">
+            <tr>
+                <td>@row.LoadDateTime</td>
+                <td>@row.Page.PageName</td>
+                <td>@row.UserProfile?.Username</td>
+            </tr>
+        </RowTemplate>
+    </ReportGenerator>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private DateTime _from = DateTime.Today.AddDays(-7);
+    private DateTime _to = DateTime.Today.AddDays(1);
+    private List<PageLoad> _results = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _results = await _db!.PageLoads
+            .Include(p => p.Page)
+            .Include(p => p.UserProfile)
+            .Where(p => p.LoadDateTime >= _from && p.LoadDateTime <= _to)
+            .OrderByDescending(p => p.LoadDateTime)
+            .ToListAsync();
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

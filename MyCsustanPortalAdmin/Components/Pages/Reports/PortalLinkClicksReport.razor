@@ -1,0 +1,60 @@
+@page "/reports/link-clicks"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+
+<PageTitle>Portal Link Clicks Report</PageTitle>
+
+<RadzenCard>
+    <h3>Portal Link Clicks Report</h3>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center" class="rz-mb-3">
+        <RadzenDatePicker @bind-Value="_from" ShowTime="true" Style="width: 200px" />
+        <RadzenDatePicker @bind-Value="_to" ShowTime="true" Style="width: 200px" />
+        <RadzenButton Text="Run" Icon="play_arrow" Click="LoadAsync" />
+    </RadzenStack>
+
+    <ReportGenerator Items="_results">
+        <HeaderTemplate>
+            <tr>
+                <th>Link</th>
+                <th>Click Date</th>
+                <th>User</th>
+            </tr>
+        </HeaderTemplate>
+        <RowTemplate Context="row">
+            <tr>
+                <td>@row.PortalLink.Title</td>
+                <td>@row.ClickDateTime</td>
+                <td>@row.UserProfile.Username</td>
+            </tr>
+        </RowTemplate>
+    </ReportGenerator>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private DateTime _from = DateTime.Today.AddDays(-7);
+    private DateTime _to = DateTime.Today.AddDays(1);
+    private List<PortalLinkClick> _results = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _results = await _db!.PortalLinkClicks
+            .Include(c => c.PortalLink)
+            .Include(c => c.UserProfile)
+            .Where(c => c.ClickDateTime >= _from && c.ClickDateTime <= _to)
+            .OrderByDescending(c => c.ClickDateTime)
+            .ToListAsync();
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}
