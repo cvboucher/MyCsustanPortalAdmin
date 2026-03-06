@@ -17,12 +17,14 @@
                 <RadzenTextBox @bind-Value="_model.ScreenTip" Name="ScreenTip" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="Target Frame" AllowFloatingLabel="false">
-                <RadzenRadioButtonList TValue="string"
-                                       Data="_targetOptions"
-                                       TextProperty="Label"
-                                       ValueProperty="Value"
-                                       @bind-Value="_model.TargetFrame"
-                                       Orientation="Orientation.Horizontal" />
+                <div class="rz-p-2">
+                    <RadzenRadioButtonList TValue="string"
+                                           Data="_targetOptions"
+                                           TextProperty="Label"
+                                           ValueProperty="Value"
+                                           @bind-Value="_model.TargetFrame"
+                                           Orientation="Orientation.Horizontal" />
+                </div>
             </RadzenFormField>
             <RadzenFormField Text="Comments" AllowFloatingLabel="false">
                 <RadzenTextArea @bind-Value="_model.Comments" Name="Comments" Style="width: 100%" />
