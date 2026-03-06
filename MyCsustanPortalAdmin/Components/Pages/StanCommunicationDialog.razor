@@ -28,9 +28,10 @@
             <RadzenFormField Text="Last Update Date" AllowFloatingLabel="false">
                 <RadzenDatePicker @bind-Value="_model.LastUpdateDateTime" Name="LastUpdateDateTime" ShowTime="true" Style="width: 100%" />
             </RadzenFormField>
-            <RadzenFormField Text="All Users" AllowFloatingLabel="false">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                 <RadzenCheckBox @bind-Value="_model.AllUsers" Name="AllUsers" />
-            </RadzenFormField>
+                <label>All Users</label>
+            </RadzenStack>
 
             <RadzenFieldset Text="Roles">
                 <RadzenFormField Text="Role Assignments" AllowFloatingLabel="false">

@@ -10,12 +10,14 @@
             <RadzenFormField Text="Name" AllowFloatingLabel="false">
                 <RadzenTextBox @bind-Value="_model.AdfWidgetName" Name="AdfWidgetName" Style="width: 100%" />
             </RadzenFormField>
-            <RadzenFormField Text="All Users" AllowFloatingLabel="false">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                 <RadzenCheckBox @bind-Value="_model.AllUsers" Name="AllUsers" />
-            </RadzenFormField>
-            <RadzenFormField Text="Inactive" AllowFloatingLabel="false">
+                <label>All Users</label>
+            </RadzenStack>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                 <RadzenCheckBox @bind-Value="_model.IsInactive" Name="IsInactive" />
-            </RadzenFormField>
+                <label>Inactive</label>
+            </RadzenStack>
 
             <RadzenFieldset Text="Roles">
                 <RadzenFormField Text="Role Assignments" AllowFloatingLabel="false">

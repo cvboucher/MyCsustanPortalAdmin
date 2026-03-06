@@ -10,9 +10,10 @@
             <RadzenFormField Text="Sort Order" AllowFloatingLabel="false">
                 <RadzenNumeric TValue="int?" @bind-Value="_model.SortOrder" Name="SortOrder" Style="width: 100%" />
             </RadzenFormField>
-            <RadzenFormField Text="Inactive" AllowFloatingLabel="false">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                 <RadzenCheckBox @bind-Value="_model.IsInactive" Name="IsInactive" />
-            </RadzenFormField>
+                <label>Inactive</label>
+            </RadzenStack>
             <RadzenFormField Text="Portal Link" AllowFloatingLabel="false">
                 <RadzenDropDown Data="_links" TextProperty="Title" ValueProperty="PortalLinkId" @bind-Value="_model.PortalLinkId" Style="width: 100%" AllowClear="true" />
             </RadzenFormField>

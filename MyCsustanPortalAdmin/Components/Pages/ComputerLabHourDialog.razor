@@ -23,9 +23,10 @@
             <RadzenFormField Text="Close Time" AllowFloatingLabel="false">
                 <RadzenDatePicker @bind-Value="_model.CloseTime" Name="CloseTime" ShowTime="true" Style="width: 100%" />
             </RadzenFormField>
-            <RadzenFormField Text="Closed" AllowFloatingLabel="false">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                 <RadzenCheckBox @bind-Value="_model.Closed" Name="Closed" />
-            </RadzenFormField>
+                <label>Closed</label>
+            </RadzenStack>
         </RadzenStack>
     </RadzenFieldset>
 
