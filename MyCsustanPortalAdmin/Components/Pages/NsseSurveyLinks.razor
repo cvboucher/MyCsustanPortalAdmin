@@ -26,6 +26,14 @@
                 <Template Context="item">
                     @item.NsseSurveyFile.FileDescription
                 </Template>
+                <FilterTemplate>
+                    <RadzenDropDown Data="_files"
+                                    TextProperty="FileDescription"
+                                    ValueProperty="NsseSurveyFileId"
+                                    AllowClear="true"
+                                    Style="width: 100%"
+                                    Change="OnFileFilterChanged" />
+                </FilterTemplate>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="NsseSurveyLink" Property="StudentId" Title="Student ID" />
             <RadzenDataGridColumn TItem="NsseSurveyLink" Property="FirstName" Title="First" />
@@ -43,11 +51,35 @@
     private MyCsustanContext? _db;
     private IQueryable<NsseSurveyLink>? _query;
     private RadzenDataGrid<NsseSurveyLink>? _grid;
+    private List<NsseSurveyFile> _files = new();
+    private int? _selectedFileId;
 
     protected override async Task OnInitializedAsync()
     {
         _db = await DbFactory.CreateDbContextAsync();
-        _query = _db.NsseSurveyLinks.Include(l => l.NsseSurveyFile).AsNoTracking();
+        _files = await _db.NsseSurveyFiles.AsNoTracking().OrderBy(f => f.FileDescription).ToListAsync();
+        BuildQuery();
+    }
+
+    private void BuildQuery()
+    {
+        var query = _db!.NsseSurveyLinks.Include(l => l.NsseSurveyFile).AsNoTracking();
+        if (_selectedFileId.HasValue)
+        {
+            query = query.Where(l => l.NsseSurveyFileId == _selectedFileId.Value);
+        }
+
+        _query = query;
+    }
+
+    private async Task OnFileFilterChanged(object? value)
+    {
+        _selectedFileId = value as int?;
+        BuildQuery();
+        if (_grid is not null)
+        {
+            await _grid.Reload();
+        }
     }
 
     private Task CreateAsync() => OpenDialogAsync(null);
