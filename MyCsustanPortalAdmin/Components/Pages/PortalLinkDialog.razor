@@ -17,7 +17,12 @@
                 <RadzenTextBox @bind-Value="_model.ScreenTip" Name="ScreenTip" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="Target Frame" AllowFloatingLabel="false">
-                <RadzenTextBox @bind-Value="_model.TargetFrame" Name="TargetFrame" Style="width: 100%" />
+                <RadzenRadioButtonList TValue="string"
+                                       Data="_targetOptions"
+                                       TextProperty="Label"
+                                       ValueProperty="Value"
+                                       @bind-Value="_model.TargetFrame"
+                                       Orientation="Orientation.Horizontal" />
             </RadzenFormField>
             <RadzenFormField Text="Comments" AllowFloatingLabel="false">
                 <RadzenTextArea @bind-Value="_model.Comments" Name="Comments" Style="width: 100%" />
@@ -38,6 +43,14 @@
     [Parameter] public int? PortalLinkId { get; set; }
 
     private PortalLink _model = new();
+
+    private readonly List<TargetOption> _targetOptions = new()
+    {
+        new("_self", "_self"),
+        new("_blank", "_blank"),
+        new("_parent", "_parent"),
+        new("_top", "_top")
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,4 +102,6 @@
 
         DialogService.Close(true);
     }
+
+    private record TargetOption(string Value, string Label);
 }
