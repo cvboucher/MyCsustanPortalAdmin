@@ -1,0 +1,70 @@
+@page "/nsse-survey-files"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>NSSE Survey Files</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>NSSE Survey Files</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="NsseSurveyFile"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="NsseSurveyFile" Property="NsseSurveyFileId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="NsseSurveyFile" Property="FileDescription" Title="Description" />
+            <RadzenDataGridColumn TItem="NsseSurveyFile" Property="SurveyFilename" Title="Filename" />
+            <RadzenDataGridColumn TItem="NsseSurveyFile" Property="OpenDate" Title="Open" Width="150px" />
+            <RadzenDataGridColumn TItem="NsseSurveyFile" Property="CloseDate" Title="Close" Width="150px" />
+            <RadzenDataGridColumn TItem="NsseSurveyFile" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.NsseSurveyFileId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<NsseSurveyFile>? _query;
+    private RadzenDataGrid<NsseSurveyFile>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.NsseSurveyFiles.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<NsseSurveyFileDialog>(
+            id is null ? "Add NSSE Survey File" : "Edit NSSE Survey File",
+            new Dictionary<string, object?> { [nameof(NsseSurveyFileDialog.NsseSurveyFileId)] = id },
+            new DialogOptions { Width = "900px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

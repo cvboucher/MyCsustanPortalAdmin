@@ -1,0 +1,70 @@
+@page "/adf-widgets"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>ADF Widgets</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>ADF Widgets</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="AdfWidget"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="AdfWidget" Property="AdfWidgetId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="AdfWidget" Property="AdfWidgetCode" Title="Code" />
+            <RadzenDataGridColumn TItem="AdfWidget" Property="AdfWidgetName" Title="Name" />
+            <RadzenDataGridColumn TItem="AdfWidget" Property="AllUsers" Title="All Users" Width="110px" />
+            <RadzenDataGridColumn TItem="AdfWidget" Property="IsInactive" Title="Inactive" Width="110px" />
+            <RadzenDataGridColumn TItem="AdfWidget" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.AdfWidgetId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<AdfWidget>? _query;
+    private RadzenDataGrid<AdfWidget>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.AdfWidgets.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<AdfWidgetDialog>(
+            id is null ? "Add ADF Widget" : "Edit ADF Widget",
+            new Dictionary<string, object?> { [nameof(AdfWidgetDialog.AdfWidgetId)] = id },
+            new DialogOptions { Width = "900px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

@@ -1,0 +1,117 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="AdfWidget" Submit="OnSubmit">
+    <RadzenFieldset Text="ADF Widget">
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="Code" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.AdfWidgetCode" Name="AdfWidgetCode" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Name" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.AdfWidgetName" Name="AdfWidgetName" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="All Users" AllowFloatingLabel="false">
+                <RadzenCheckBox @bind-Value="_model.AllUsers" Name="AllUsers" />
+            </RadzenFormField>
+            <RadzenFormField Text="Inactive" AllowFloatingLabel="false">
+                <RadzenCheckBox @bind-Value="_model.IsInactive" Name="IsInactive" />
+            </RadzenFormField>
+
+            <RadzenFieldset Text="Roles">
+                <RadzenFormField Text="Role Assignments" AllowFloatingLabel="false">
+                    <RadzenListBox Data="_roles" TextProperty="RoleName" ValueProperty="PortalRoleId" Multiple="true" @bind-Value="_selectedRoleIds" Style="width: 100%; max-height: 240px" />
+                </RadzenFormField>
+            </RadzenFieldset>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Visible="@(_model.AdfWidgetId != 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? AdfWidgetId { get; set; }
+
+    private AdfWidget _model = new();
+    private List<PortalRole> _roles = new();
+    private IList<int> _selectedRoleIds = new List<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _roles = await db.PortalRoles.AsNoTracking().OrderBy(r => r.RoleName).ToListAsync();
+
+        if (AdfWidgetId is null)
+        {
+            return;
+        }
+
+        var entity = await db.AdfWidgets
+            .Include(a => a.PortalRoles)
+            .FirstOrDefaultAsync(a => a.AdfWidgetId == AdfWidgetId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+            _selectedRoleIds = entity.PortalRoles.Select(r => r.PortalRoleId).ToList();
+        }
+    }
+
+    private async Task OnSubmit(AdfWidget model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        AdfWidget entity;
+        if (model.AdfWidgetId == 0)
+        {
+            entity = new AdfWidget();
+            db.AdfWidgets.Add(entity);
+        }
+        else
+        {
+            entity = await db.AdfWidgets
+                .Include(a => a.PortalRoles)
+                .FirstAsync(a => a.AdfWidgetId == model.AdfWidgetId);
+        }
+
+        entity.AdfWidgetCode = model.AdfWidgetCode;
+        entity.AdfWidgetName = model.AdfWidgetName;
+        entity.AllUsers = model.AllUsers;
+        entity.IsInactive = model.IsInactive;
+
+        entity.PortalRoles.Clear();
+        var selectedRoles = await db.PortalRoles
+            .Where(r => _selectedRoleIds.Contains(r.PortalRoleId))
+            .ToListAsync();
+        foreach (var role in selectedRoles)
+        {
+            entity.PortalRoles.Add(role);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this ADF widget?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.AdfWidgets.FindAsync(_model.AdfWidgetId);
+        if (entity is not null)
+        {
+            db.AdfWidgets.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

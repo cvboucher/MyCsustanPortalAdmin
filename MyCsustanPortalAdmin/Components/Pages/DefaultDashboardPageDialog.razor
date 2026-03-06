@@ -1,0 +1,145 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="DefaultDashboardPage" Submit="OnSubmit">
+    <RadzenFieldset Text="Default Dashboard Page">
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="Dashboard Page" AllowFloatingLabel="false">
+                <RadzenDropDown Data="_dashboardPages" TextProperty="Title" ValueProperty="DashboardPageId" @bind-Value="_model.DashboardPageId" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Alternate Title" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.AlternateTitle" Name="AlternateTitle" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Sequence" AllowFloatingLabel="false">
+                <RadzenNumeric TValue="int?" @bind-Value="_model.Sequence" Name="Sequence" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="All Users" AllowFloatingLabel="false">
+                <RadzenCheckBox @bind-Value="_model.AllUsers" Name="AllUsers" />
+            </RadzenFormField>
+            <RadzenFormField Text="Inactive" AllowFloatingLabel="false">
+                <RadzenCheckBox @bind-Value="_model.IsInactive" Name="IsInactive" />
+            </RadzenFormField>
+
+            <RadzenFieldset Text="Roles">
+                <RadzenFormField Text="Role Assignments" AllowFloatingLabel="false">
+                    <RadzenListBox Data="_roles" TextProperty="RoleName" ValueProperty="PortalRoleId" Multiple="true" @bind-Value="_selectedRoleIds" Style="width: 100%; max-height: 200px" />
+                </RadzenFormField>
+            </RadzenFieldset>
+
+            <RadzenFieldset Text="User Profiles">
+                <RadzenFormField Text="User Profiles" AllowFloatingLabel="false">
+                    <RadzenListBox Data="_userProfiles" TextProperty="Username" ValueProperty="UserProfileId" Multiple="true" @bind-Value="_selectedUserProfileIds" Style="width: 100%; max-height: 200px" />
+                </RadzenFormField>
+            </RadzenFieldset>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Visible="@(_model.DefaultDashboardPageId != 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? DefaultDashboardPageId { get; set; }
+
+    private DefaultDashboardPage _model = new();
+    private List<DashboardPage> _dashboardPages = new();
+    private List<PortalRole> _roles = new();
+    private List<UserProfile> _userProfiles = new();
+    private IList<int> _selectedRoleIds = new List<int>();
+    private IList<int> _selectedUserProfileIds = new List<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _dashboardPages = await db.DashboardPages.AsNoTracking().OrderBy(d => d.Title).ToListAsync();
+        _roles = await db.PortalRoles.AsNoTracking().OrderBy(r => r.RoleName).ToListAsync();
+        _userProfiles = await db.UserProfiles.AsNoTracking().OrderBy(u => u.Username).ToListAsync();
+
+        if (DefaultDashboardPageId is null)
+        {
+            return;
+        }
+
+        var entity = await db.DefaultDashboardPages
+            .Include(d => d.PortalRoles)
+            .Include(d => d.UserProfiles)
+            .FirstOrDefaultAsync(d => d.DefaultDashboardPageId == DefaultDashboardPageId.Value);
+
+        if (entity is not null)
+        {
+            _model = entity;
+            _selectedRoleIds = entity.PortalRoles.Select(r => r.PortalRoleId).ToList();
+            _selectedUserProfileIds = entity.UserProfiles.Select(u => u.UserProfileId).ToList();
+        }
+    }
+
+    private async Task OnSubmit(DefaultDashboardPage model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        DefaultDashboardPage entity;
+        if (model.DefaultDashboardPageId == 0)
+        {
+            entity = new DefaultDashboardPage();
+            db.DefaultDashboardPages.Add(entity);
+        }
+        else
+        {
+            entity = await db.DefaultDashboardPages
+                .Include(d => d.PortalRoles)
+                .Include(d => d.UserProfiles)
+                .FirstAsync(d => d.DefaultDashboardPageId == model.DefaultDashboardPageId);
+        }
+
+        entity.DashboardPageId = model.DashboardPageId;
+        entity.AlternateTitle = model.AlternateTitle;
+        entity.Sequence = model.Sequence;
+        entity.AllUsers = model.AllUsers;
+        entity.IsInactive = model.IsInactive;
+
+        entity.PortalRoles.Clear();
+        var selectedRoles = await db.PortalRoles
+            .Where(r => _selectedRoleIds.Contains(r.PortalRoleId))
+            .ToListAsync();
+        foreach (var role in selectedRoles)
+        {
+            entity.PortalRoles.Add(role);
+        }
+
+        entity.UserProfiles.Clear();
+        var selectedUsers = await db.UserProfiles
+            .Where(u => _selectedUserProfileIds.Contains(u.UserProfileId))
+            .ToListAsync();
+        foreach (var user in selectedUsers)
+        {
+            entity.UserProfiles.Add(user);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this default dashboard page?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.DefaultDashboardPages.FindAsync(_model.DefaultDashboardPageId);
+        if (entity is not null)
+        {
+            db.DefaultDashboardPages.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

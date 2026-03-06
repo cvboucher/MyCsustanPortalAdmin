@@ -1,0 +1,80 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="RssFeed" Submit="OnSubmit">
+    <RadzenFieldset Text="RSS Feed">
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="Name" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.RssFeedName" Name="RssFeedName" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="URL" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.RssFeedUrl" Name="RssFeedUrl" Style="width: 100%" />
+            </RadzenFormField>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Visible="@(_model.RssFeedId != 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? RssFeedId { get; set; }
+
+    private RssFeed _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (RssFeedId is null)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.RssFeeds.FindAsync(RssFeedId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(RssFeed model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.RssFeedId == 0)
+        {
+            db.RssFeeds.Add(model);
+        }
+        else
+        {
+            db.RssFeeds.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this RSS feed?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.RssFeeds.FindAsync(_model.RssFeedId);
+        if (entity is not null)
+        {
+            db.RssFeeds.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

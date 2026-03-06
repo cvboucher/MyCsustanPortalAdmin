@@ -1,0 +1,85 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="UserProfile" Submit="OnSubmit">
+    <RadzenFieldset Text="User Profile">
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="Username" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.Username" Name="Username" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Creation Date" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.CreationDateTime" Name="CreationDateTime" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Last Login" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.LastLoginDateTime" Name="LastLoginDateTime" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Visible="@(_model.UserProfileId != 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? UserProfileId { get; set; }
+
+    private UserProfile _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserProfileId is null)
+        {
+            _model.CreationDateTime = DateTime.Now;
+            _model.LastLoginDateTime = DateTime.Now;
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.UserProfiles.FindAsync(UserProfileId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(UserProfile model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.UserProfileId == 0)
+        {
+            db.UserProfiles.Add(model);
+        }
+        else
+        {
+            db.UserProfiles.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this user profile?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.UserProfiles.FindAsync(_model.UserProfileId);
+        if (entity is not null)
+        {
+            db.UserProfiles.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

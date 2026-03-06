@@ -1,0 +1,96 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="NsseSurveyFile" Submit="OnSubmit">
+    <RadzenFieldset Text="NSSE Survey File">
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="Description" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.FileDescription" Name="FileDescription" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Filename" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.SurveyFilename" Name="SurveyFilename" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Open Date" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.OpenDate" Name="OpenDate" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Close Date" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.CloseDate" Name="CloseDate" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Load Date" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.LoadDateTime" Name="LoadDateTime" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Survey Invitation" AllowFloatingLabel="false">
+                <RadzenTextArea @bind-Value="_model.SurveyInvitation" Name="SurveyInvitation" Style="width: 100%" Rows="6" />
+            </RadzenFormField>
+            <RadzenFormField Text="Creation Date" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.CreationDateTime" Name="CreationDateTime" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Visible="@(_model.NsseSurveyFileId != 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? NsseSurveyFileId { get; set; }
+
+    private NsseSurveyFile _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (NsseSurveyFileId is null)
+        {
+            _model.CreationDateTime = DateTime.Now;
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.NsseSurveyFiles.FindAsync(NsseSurveyFileId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(NsseSurveyFile model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.NsseSurveyFileId == 0)
+        {
+            db.NsseSurveyFiles.Add(model);
+        }
+        else
+        {
+            db.NsseSurveyFiles.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this survey file?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.NsseSurveyFiles.FindAsync(_model.NsseSurveyFileId);
+        if (entity is not null)
+        {
+            db.NsseSurveyFiles.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

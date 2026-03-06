@@ -1,0 +1,92 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="NsseSurveyLink" Submit="OnSubmit">
+    <RadzenFieldset Text="NSSE Survey Link">
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="Survey File" AllowFloatingLabel="false">
+                <RadzenDropDown Data="_files" TextProperty="FileDescription" ValueProperty="NsseSurveyFileId" @bind-Value="_model.NsseSurveyFileId" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Student ID" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.StudentId" Name="StudentId" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="First Name" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.FirstName" Name="FirstName" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Last Name" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.LastName" Name="LastName" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Survey Link" AllowFloatingLabel="false">
+                <RadzenTextArea @bind-Value="_model.SurveyLink" Name="SurveyLink" Style="width: 100%" Rows="4" />
+            </RadzenFormField>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Visible="@(_model.NsseSurveyLinkId != 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? NsseSurveyLinkId { get; set; }
+
+    private NsseSurveyLink _model = new();
+    private List<NsseSurveyFile> _files = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _files = await db.NsseSurveyFiles.AsNoTracking().OrderBy(f => f.FileDescription).ToListAsync();
+
+        if (NsseSurveyLinkId is null)
+        {
+            return;
+        }
+
+        var entity = await db.NsseSurveyLinks.FindAsync(NsseSurveyLinkId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(NsseSurveyLink model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.NsseSurveyLinkId == 0)
+        {
+            db.NsseSurveyLinks.Add(model);
+        }
+        else
+        {
+            db.NsseSurveyLinks.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this survey link?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.NsseSurveyLinks.FindAsync(_model.NsseSurveyLinkId);
+        if (entity is not null)
+        {
+            db.NsseSurveyLinks.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

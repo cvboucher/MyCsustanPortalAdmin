@@ -1,0 +1,75 @@
+@page "/default-dashboard-pages"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>Default Dashboard Pages</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>Default Dashboard Pages</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="DefaultDashboardPage"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="DefaultDashboardPage" Property="DefaultDashboardPageId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="DefaultDashboardPage" Title="Dashboard Page">
+                <Template Context="item">
+                    @item.DashboardPage.Title
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="DefaultDashboardPage" Property="AlternateTitle" Title="Alternate Title" />
+            <RadzenDataGridColumn TItem="DefaultDashboardPage" Property="Sequence" Title="Sequence" Width="110px" />
+            <RadzenDataGridColumn TItem="DefaultDashboardPage" Property="AllUsers" Title="All Users" Width="110px" />
+            <RadzenDataGridColumn TItem="DefaultDashboardPage" Property="IsInactive" Title="Inactive" Width="110px" />
+            <RadzenDataGridColumn TItem="DefaultDashboardPage" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.DefaultDashboardPageId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<DefaultDashboardPage>? _query;
+    private RadzenDataGrid<DefaultDashboardPage>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.DefaultDashboardPages.Include(d => d.DashboardPage).AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<DefaultDashboardPageDialog>(
+            id is null ? "Add Default Dashboard Page" : "Edit Default Dashboard Page",
+            new Dictionary<string, object?> { [nameof(DefaultDashboardPageDialog.DefaultDashboardPageId)] = id },
+            new DialogOptions { Width = "900px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

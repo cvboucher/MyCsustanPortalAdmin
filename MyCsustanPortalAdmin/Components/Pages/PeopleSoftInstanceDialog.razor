@@ -1,0 +1,95 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="PeopleSoftInstance" Submit="OnSubmit">
+    <RadzenFieldset Text="PeopleSoft Instance">
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="Instance Name" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.InstanceName" Name="InstanceName" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Sort Order" AllowFloatingLabel="false">
+                <RadzenNumeric TValue="int?" @bind-Value="_model.SortOrder" Name="SortOrder" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Inactive" AllowFloatingLabel="false">
+                <RadzenCheckBox @bind-Value="_model.IsInactive" Name="IsInactive" />
+            </RadzenFormField>
+            <RadzenFormField Text="Portal Link" AllowFloatingLabel="false">
+                <RadzenDropDown Data="_links" TextProperty="Title" ValueProperty="PortalLinkId" @bind-Value="_model.PortalLinkId" Style="width: 100%" AllowClear="true" />
+            </RadzenFormField>
+            <RadzenFormField Text="Masked Emplid" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.MaskedEmplid" Name="MaskedEmplid" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Masked SSN" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.MaskedSsn" Name="MaskedSsn" Style="width: 100%" />
+            </RadzenFormField>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Visible="@(_model.PeopleSoftInstanceId != 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? PeopleSoftInstanceId { get; set; }
+
+    private PeopleSoftInstance _model = new();
+    private List<PortalLink> _links = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _links = await db.PortalLinks.AsNoTracking().OrderBy(l => l.Title).ToListAsync();
+
+        if (PeopleSoftInstanceId is null)
+        {
+            return;
+        }
+
+        var entity = await db.PeopleSoftInstances.FindAsync(PeopleSoftInstanceId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(PeopleSoftInstance model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.PeopleSoftInstanceId == 0)
+        {
+            db.PeopleSoftInstances.Add(model);
+        }
+        else
+        {
+            db.PeopleSoftInstances.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this instance?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.PeopleSoftInstances.FindAsync(_model.PeopleSoftInstanceId);
+        if (entity is not null)
+        {
+            db.PeopleSoftInstances.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

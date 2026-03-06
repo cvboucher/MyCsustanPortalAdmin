@@ -1,0 +1,144 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="DateAndDeadline" Submit="OnSubmit">
+    <RadzenFieldset Text="Date & Deadline">
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="Name" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.DateAndDeadlineName" Name="DateAndDeadlineName" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Content" AllowFloatingLabel="false">
+                <RadzenTextArea @bind-Value="_model.DateAndDeadlineContent" Name="DateAndDeadlineContent" Style="width: 100%" Rows="6" />
+            </RadzenFormField>
+            <RadzenFormField Text="Display Date" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.DisplayDateTime" Name="DisplayDateTime" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Hide Date" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.HideDateTime" Name="HideDateTime" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Creation User" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.CreationUser" Name="CreationUser" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Creation Date" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.CreationDateTime" Name="CreationDateTime" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Last Update User" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.LastUpdateUser" Name="LastUpdateUser" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Last Update Date" AllowFloatingLabel="false">
+                <RadzenDatePicker @bind-Value="_model.LastUpdateDateTime" Name="LastUpdateDateTime" ShowTime="true" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="All Users" AllowFloatingLabel="false">
+                <RadzenCheckBox @bind-Value="_model.AllUsers" Name="AllUsers" />
+            </RadzenFormField>
+
+            <RadzenFieldset Text="Roles">
+                <RadzenFormField Text="Role Assignments" AllowFloatingLabel="false">
+                    <RadzenListBox Data="_roles"
+                                   TextProperty="RoleName"
+                                   ValueProperty="PortalRoleId"
+                                   Multiple="true"
+                                   @bind-Value="_selectedRoleIds"
+                                   Style="width: 100%; max-height: 240px" />
+                </RadzenFormField>
+            </RadzenFieldset>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Visible="@(_model.DateAndDeadlineId != 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? DateAndDeadlineId { get; set; }
+
+    private DateAndDeadline _model = new();
+    private List<PortalRole> _roles = new();
+    private IList<int> _selectedRoleIds = new List<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        _roles = await db.PortalRoles.AsNoTracking().OrderBy(r => r.RoleName).ToListAsync();
+
+        if (DateAndDeadlineId is null)
+        {
+            _model.CreationDateTime = DateTime.Now;
+            _model.LastUpdateDateTime = DateTime.Now;
+            return;
+        }
+
+        var entity = await db.DateAndDeadlines
+            .Include(d => d.PortalRoles)
+            .FirstOrDefaultAsync(d => d.DateAndDeadlineId == DateAndDeadlineId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+            _selectedRoleIds = entity.PortalRoles.Select(r => r.PortalRoleId).ToList();
+        }
+    }
+
+    private async Task OnSubmit(DateAndDeadline model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        DateAndDeadline entity;
+        if (model.DateAndDeadlineId == 0)
+        {
+            entity = new DateAndDeadline();
+            db.DateAndDeadlines.Add(entity);
+        }
+        else
+        {
+            entity = await db.DateAndDeadlines
+                .Include(d => d.PortalRoles)
+                .FirstAsync(d => d.DateAndDeadlineId == model.DateAndDeadlineId);
+        }
+
+        entity.DateAndDeadlineName = model.DateAndDeadlineName;
+        entity.DateAndDeadlineContent = model.DateAndDeadlineContent;
+        entity.DisplayDateTime = model.DisplayDateTime;
+        entity.HideDateTime = model.HideDateTime;
+        entity.CreationDateTime = model.CreationDateTime;
+        entity.CreationUser = model.CreationUser;
+        entity.LastUpdateDateTime = model.LastUpdateDateTime;
+        entity.LastUpdateUser = model.LastUpdateUser;
+        entity.AllUsers = model.AllUsers;
+
+        entity.PortalRoles.Clear();
+        var selectedRoles = await db.PortalRoles
+            .Where(r => _selectedRoleIds.Contains(r.PortalRoleId))
+            .ToListAsync();
+        foreach (var role in selectedRoles)
+        {
+            entity.PortalRoles.Add(role);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this date/deadline?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.DateAndDeadlines.FindAsync(_model.DateAndDeadlineId);
+        if (entity is not null)
+        {
+            db.DateAndDeadlines.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

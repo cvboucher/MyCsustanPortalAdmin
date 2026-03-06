@@ -1,0 +1,70 @@
+@page "/stan-communications"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>Stan Communications</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>Stan Communications</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="StanCommunication"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="StanCommunication" Property="StanCommunicationId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="StanCommunication" Property="Subject" Title="Subject" />
+            <RadzenDataGridColumn TItem="StanCommunication" Property="DisplayDateTime" Title="Display" Width="170px" />
+            <RadzenDataGridColumn TItem="StanCommunication" Property="HideDateTime" Title="Hide" Width="170px" />
+            <RadzenDataGridColumn TItem="StanCommunication" Property="AllUsers" Title="All Users" Width="110px" />
+            <RadzenDataGridColumn TItem="StanCommunication" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.StanCommunicationId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<StanCommunication>? _query;
+    private RadzenDataGrid<StanCommunication>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.StanCommunications.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<StanCommunicationDialog>(
+            id is null ? "Add Stan Communication" : "Edit Stan Communication",
+            new Dictionary<string, object?> { [nameof(StanCommunicationDialog.StanCommunicationId)] = id },
+            new DialogOptions { Width = "900px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

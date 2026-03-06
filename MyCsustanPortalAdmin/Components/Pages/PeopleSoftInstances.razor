@@ -1,0 +1,74 @@
+@page "/peoplesoft-instances"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>PeopleSoft Instances</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>PeopleSoft Instances</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="PeopleSoftInstance"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="PeopleSoftInstance" Property="PeopleSoftInstanceId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="PeopleSoftInstance" Property="InstanceName" Title="Instance" />
+            <RadzenDataGridColumn TItem="PeopleSoftInstance" Property="SortOrder" Title="Sort" Width="100px" />
+            <RadzenDataGridColumn TItem="PeopleSoftInstance" Property="IsInactive" Title="Inactive" Width="110px" />
+            <RadzenDataGridColumn TItem="PeopleSoftInstance" Title="Portal Link">
+                <Template Context="item">
+                    @item.PortalLink?.Title
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="PeopleSoftInstance" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.PeopleSoftInstanceId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<PeopleSoftInstance>? _query;
+    private RadzenDataGrid<PeopleSoftInstance>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.PeopleSoftInstances.Include(p => p.PortalLink).AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<PeopleSoftInstanceDialog>(
+            id is null ? "Add PeopleSoft Instance" : "Edit PeopleSoft Instance",
+            new Dictionary<string, object?> { [nameof(PeopleSoftInstanceDialog.PeopleSoftInstanceId)] = id },
+            new DialogOptions { Width = "800px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

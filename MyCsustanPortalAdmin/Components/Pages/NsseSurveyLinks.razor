@@ -1,0 +1,74 @@
+@page "/nsse-survey-links"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>NSSE Survey Links</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>NSSE Survey Links</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="NsseSurveyLink"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="NsseSurveyLink" Property="NsseSurveyLinkId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="NsseSurveyLink" Title="File">
+                <Template Context="item">
+                    @item.NsseSurveyFile.FileDescription
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="NsseSurveyLink" Property="StudentId" Title="Student ID" />
+            <RadzenDataGridColumn TItem="NsseSurveyLink" Property="FirstName" Title="First" />
+            <RadzenDataGridColumn TItem="NsseSurveyLink" Property="LastName" Title="Last" />
+            <RadzenDataGridColumn TItem="NsseSurveyLink" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.NsseSurveyLinkId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<NsseSurveyLink>? _query;
+    private RadzenDataGrid<NsseSurveyLink>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.NsseSurveyLinks.Include(l => l.NsseSurveyFile).AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<NsseSurveyLinkDialog>(
+            id is null ? "Add NSSE Survey Link" : "Edit NSSE Survey Link",
+            new Dictionary<string, object?> { [nameof(NsseSurveyLinkDialog.NsseSurveyLinkId)] = id },
+            new DialogOptions { Width = "900px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

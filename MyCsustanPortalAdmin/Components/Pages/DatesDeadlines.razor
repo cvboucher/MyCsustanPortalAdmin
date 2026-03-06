@@ -1,0 +1,70 @@
+@page "/dates-deadlines"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>Dates & Deadlines</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>Dates & Deadlines</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="DateAndDeadline"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="DateAndDeadline" Property="DateAndDeadlineId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="DateAndDeadline" Property="DateAndDeadlineName" Title="Name" />
+            <RadzenDataGridColumn TItem="DateAndDeadline" Property="DisplayDateTime" Title="Display" Width="170px" />
+            <RadzenDataGridColumn TItem="DateAndDeadline" Property="HideDateTime" Title="Hide" Width="170px" />
+            <RadzenDataGridColumn TItem="DateAndDeadline" Property="AllUsers" Title="All Users" Width="110px" />
+            <RadzenDataGridColumn TItem="DateAndDeadline" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.DateAndDeadlineId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<DateAndDeadline>? _query;
+    private RadzenDataGrid<DateAndDeadline>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.DateAndDeadlines.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<DateAndDeadlineDialog>(
+            id is null ? "Add Date/Deadline" : "Edit Date/Deadline",
+            new Dictionary<string, object?> { [nameof(DateAndDeadlineDialog.DateAndDeadlineId)] = id },
+            new DialogOptions { Width = "900px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

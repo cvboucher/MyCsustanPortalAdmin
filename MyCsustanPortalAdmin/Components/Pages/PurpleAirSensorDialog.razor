@@ -1,0 +1,83 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="PurpleAirSensor" Submit="OnSubmit">
+    <RadzenFieldset Text="PurpleAir Sensor">
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="Sensor Key" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.SensorKey" Name="SensorKey" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Sensor ID" AllowFloatingLabel="false">
+                <RadzenNumeric TValue="int" @bind-Value="_model.SensorId" Name="SensorId" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="Location" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.SensorLocation" Name="SensorLocation" Style="width: 100%" />
+            </RadzenFormField>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Visible="@(_model.PurpleAirSensorId != 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? PurpleAirSensorId { get; set; }
+
+    private PurpleAirSensor _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (PurpleAirSensorId is null)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.PurpleAirSensors.FindAsync(PurpleAirSensorId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(PurpleAirSensor model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.PurpleAirSensorId == 0)
+        {
+            db.PurpleAirSensors.Add(model);
+        }
+        else
+        {
+            db.PurpleAirSensors.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this sensor?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.PurpleAirSensors.FindAsync(_model.PurpleAirSensorId);
+        if (entity is not null)
+        {
+            db.PurpleAirSensors.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

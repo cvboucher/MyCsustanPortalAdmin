@@ -1,0 +1,69 @@
+@page "/user-profiles"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>User Profiles</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>User Profiles</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="UserProfile"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="UserProfile" Property="UserProfileId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="UserProfile" Property="Username" Title="Username" />
+            <RadzenDataGridColumn TItem="UserProfile" Property="CreationDateTime" Title="Created" Width="170px" />
+            <RadzenDataGridColumn TItem="UserProfile" Property="LastLoginDateTime" Title="Last Login" Width="170px" />
+            <RadzenDataGridColumn TItem="UserProfile" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.UserProfileId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<UserProfile>? _query;
+    private RadzenDataGrid<UserProfile>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.UserProfiles.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<UserProfileDialog>(
+            id is null ? "Add User Profile" : "Edit User Profile",
+            new Dictionary<string, object?> { [nameof(UserProfileDialog.UserProfileId)] = id },
+            new DialogOptions { Width = "800px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}

@@ -1,0 +1,80 @@
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<RadzenTemplateForm Data="@_model" TItem="BaseUrl" Submit="OnSubmit">
+    <RadzenFieldset Text="Base URL">
+        <RadzenStack Gap="1rem">
+            <RadzenFormField Text="Name" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.BaseUrlName" Name="BaseUrlName" Style="width: 100%" />
+            </RadzenFormField>
+            <RadzenFormField Text="URL" AllowFloatingLabel="false">
+                <RadzenTextBox @bind-Value="_model.Url" Name="Url" Style="width: 100%" />
+            </RadzenFormField>
+        </RadzenStack>
+    </RadzenFieldset>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" class="rz-mt-3">
+        <RadzenButton Text="Delete" ButtonStyle="ButtonStyle.Danger" Click="OnDelete" Visible="@(_model.BaseUrlId != 0)" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+            <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Type="ButtonType.Submit" />
+            <RadzenButton Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="() => DialogService.Close(false)" />
+        </RadzenStack>
+    </RadzenStack>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public int? BaseUrlId { get; set; }
+
+    private BaseUrl _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (BaseUrlId is null)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.BaseUrls.FindAsync(BaseUrlId.Value);
+        if (entity is not null)
+        {
+            _model = entity;
+        }
+    }
+
+    private async Task OnSubmit(BaseUrl model)
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+
+        if (model.BaseUrlId == 0)
+        {
+            db.BaseUrls.Add(model);
+        }
+        else
+        {
+            db.BaseUrls.Update(model);
+        }
+
+        await db.SaveChangesAsync();
+        DialogService.Close(true);
+    }
+
+    private async Task OnDelete()
+    {
+        var confirm = await DialogService.Confirm("Delete this base URL?", "Confirm Delete");
+        if (confirm != true)
+        {
+            return;
+        }
+
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var entity = await db.BaseUrls.FindAsync(_model.BaseUrlId);
+        if (entity is not null)
+        {
+            db.BaseUrls.Remove(entity);
+            await db.SaveChangesAsync();
+        }
+
+        DialogService.Close(true);
+    }
+}

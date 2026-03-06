@@ -1,0 +1,69 @@
+@page "/purple-air-sensors"
+@implements IDisposable
+
+@inject IDbContextFactory<MyCsustanContext> DbFactory
+@inject DialogService DialogService
+
+<PageTitle>PurpleAir Sensors</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <h3>PurpleAir Sensors</h3>
+        <RadzenButton Text="Add" Icon="add" Click="CreateAsync" />
+    </RadzenStack>
+
+    <RadzenDataGrid TItem="PurpleAirSensor"
+                    Data="@_query"
+                    @ref="_grid"
+                    AllowSorting="true"
+                    AllowFiltering="true"
+                    FilterMode="FilterMode.SimpleWithMenu"
+                    AllowPaging="true"
+                    PageSize="20">
+        <Columns>
+            <RadzenDataGridColumn TItem="PurpleAirSensor" Property="PurpleAirSensorId" Title="ID" Width="90px" />
+            <RadzenDataGridColumn TItem="PurpleAirSensor" Property="SensorKey" Title="Sensor Key" />
+            <RadzenDataGridColumn TItem="PurpleAirSensor" Property="SensorId" Title="Sensor ID" Width="120px" />
+            <RadzenDataGridColumn TItem="PurpleAirSensor" Property="SensorLocation" Title="Location" />
+            <RadzenDataGridColumn TItem="PurpleAirSensor" Title="Actions" Width="120px">
+                <Template Context="item">
+                    <RadzenButton Size="ButtonSize.Small" Text="Edit" Icon="edit" Click="() => EditAsync(item.PurpleAirSensorId)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    private MyCsustanContext? _db;
+    private IQueryable<PurpleAirSensor>? _query;
+    private RadzenDataGrid<PurpleAirSensor>? _grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await DbFactory.CreateDbContextAsync();
+        _query = _db.PurpleAirSensors.AsNoTracking();
+    }
+
+    private Task CreateAsync() => OpenDialogAsync(null);
+
+    private Task EditAsync(int id) => OpenDialogAsync(id);
+
+    private async Task OpenDialogAsync(int? id)
+    {
+        var result = await DialogService.OpenAsync<PurpleAirSensorDialog>(
+            id is null ? "Add PurpleAir Sensor" : "Edit PurpleAir Sensor",
+            new Dictionary<string, object?> { [nameof(PurpleAirSensorDialog.PurpleAirSensorId)] = id },
+            new DialogOptions { Width = "700px", Height = "auto" });
+
+        if (result is true)
+        {
+            await _grid!.Reload();
+        }
+    }
+
+    public void Dispose()
+    {
+        _db?.Dispose();
+    }
+}
