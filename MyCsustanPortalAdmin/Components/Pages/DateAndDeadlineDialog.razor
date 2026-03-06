@@ -8,7 +8,7 @@
                 <RadzenTextBox @bind-Value="_model.DateAndDeadlineName" Name="DateAndDeadlineName" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="Content" AllowFloatingLabel="false">
-                <RadzenTextArea @bind-Value="_model.DateAndDeadlineContent" Name="DateAndDeadlineContent" Style="width: 100%" Rows="6" />
+                <RadzenHtmlEditor @bind-Value="_model.DateAndDeadlineContent" Name="DateAndDeadlineContent" Style="width: 100%" />
             </RadzenFormField>
             <RadzenFormField Text="Display Date" AllowFloatingLabel="false">
                 <RadzenDatePicker @bind-Value="_model.DisplayDateTime" Name="DisplayDateTime" ShowTime="true" Style="width: 100%" />
@@ -34,12 +34,13 @@
 
             <RadzenFieldset Text="Roles">
                 <RadzenFormField Text="Role Assignments" AllowFloatingLabel="false">
-                    <RadzenListBox Data="_roles"
-                                   TextProperty="RoleName"
-                                   ValueProperty="PortalRoleId"
-                                   Multiple="true"
-                                   @bind-Value="_selectedRoleIds"
-                                   Style="width: 100%; max-height: 240px" />
+                    <RadzenDropDown Data="_roles"
+                                    TextProperty="RoleName"
+                                    ValueProperty="PortalRoleId"
+                                    Multiple="true"
+                                    Chips="true"
+                                    @bind-Value="_selectedRoleIds"
+                                    Style="width: 100%" />
                 </RadzenFormField>
             </RadzenFieldset>
         </RadzenStack>
