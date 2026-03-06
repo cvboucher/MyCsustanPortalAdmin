@@ -21,7 +21,16 @@
 
             <RadzenFieldset Text="Roles">
                 <RadzenFormField Text="Role Assignments" AllowFloatingLabel="false">
-                    <RadzenListBox Data="_roles" TextProperty="RoleName" ValueProperty="PortalRoleId" Multiple="true" @bind-Value="_selectedRoleIds" Style="width: 100%; max-height: 240px" />
+                    <RadzenDropDown Data="_roles"
+                                    TextProperty="RoleName"
+                                    ValueProperty="PortalRoleId"
+                                    Multiple="true"
+                                    Chips="true"
+                                    AllowClear="true"
+                                    MaxSelectedLabels="30"
+                                    AllowFiltering="true"
+                                    @bind-Value="_selectedRoleIds"
+                                    Style="width: 100%" />
                 </RadzenFormField>
             </RadzenFieldset>
         </RadzenStack>
