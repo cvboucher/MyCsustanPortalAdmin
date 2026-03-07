@@ -13,7 +13,13 @@
         <RadzenButton Text="Run" Icon="play_arrow" Click="LoadAsync" />
     </RadzenStack>
 
-    <ReportGenerator Items="_results">
+    @if (_isLoading)
+    {
+        <Spinner />
+    }
+    else
+    {
+        <ReportGenerator Items="_results">
         <HeaderTemplate>
             <tr>
                 <th>Login Date</th>
@@ -28,7 +34,8 @@
                 <td>@row.LoggingInAs</td>
             </tr>
         </RowTemplate>
-    </ReportGenerator>
+        </ReportGenerator>
+    }
 </RadzenCard>
 
 @code {
@@ -36,6 +43,7 @@
     private DateTime _from = DateTime.Today.AddDays(-7);
     private DateTime _to = DateTime.Today.AddDays(1);
     private List<LoginA> _results = new();
+    private bool _isLoading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -45,10 +53,15 @@
 
     private async Task LoadAsync()
     {
+        _isLoading = true;
+        StateHasChanged();
+
         _results = await _db!.LoginAs
             .Where(l => l.LoginDateTime >= _from && l.LoginDateTime <= _to)
             .OrderByDescending(l => l.LoginDateTime)
             .ToListAsync();
+
+        _isLoading = false;
     }
 
     public void Dispose()

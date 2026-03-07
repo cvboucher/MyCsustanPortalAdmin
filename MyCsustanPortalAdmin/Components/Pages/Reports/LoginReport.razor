@@ -13,7 +13,13 @@
         <RadzenButton Text="Run" Icon="play_arrow" Click="LoadAsync" />
     </RadzenStack>
 
-    <ReportGenerator Items="_results">
+    @if (_isLoading)
+    {
+        <Spinner />
+    }
+    else
+    {
+        <ReportGenerator Items="_results">
         <HeaderTemplate>
             <tr>
                 <th>Username</th>
@@ -26,7 +32,8 @@
                 <td>@row.LastLoginDateTime</td>
             </tr>
         </RowTemplate>
-    </ReportGenerator>
+        </ReportGenerator>
+    }
 </RadzenCard>
 
 @code {
@@ -34,6 +41,7 @@
     private DateTime _from = DateTime.Today.AddDays(-7);
     private DateTime _to = DateTime.Today.AddDays(1);
     private List<UserProfile> _results = new();
+    private bool _isLoading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -43,10 +51,15 @@
 
     private async Task LoadAsync()
     {
+        _isLoading = true;
+        StateHasChanged();
+
         _results = await _db!.UserProfiles
             .Where(u => u.LastLoginDateTime >= _from && u.LastLoginDateTime <= _to)
             .OrderByDescending(u => u.LastLoginDateTime)
             .ToListAsync();
+
+        _isLoading = false;
     }
 
     public void Dispose()
